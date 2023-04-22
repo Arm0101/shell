@@ -10,7 +10,7 @@
 #include "execute.h"
 #include "list.h"
 #include "parser.h"
-
+#include "utils.h"
 #define ACCESS_FLAGS S_IRUSR| S_IWUSR | S_IXUSR
 
 
@@ -59,4 +59,8 @@ void execute_cmd(command c){
     }
 }
 
+void execute_line(pline l){
+    info(l.comands[0]);
+    execute_cmd(l.comands[0]);
+}
 

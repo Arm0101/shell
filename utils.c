@@ -7,28 +7,15 @@
 #include "utils.h"
 #include "list.h"
 
-void _strcat(char** s, const char c){
-    ssize_t len;
-     if (*s == NULL) len = 1;
-     else  len = strlen(*s) + 1;
-
-    *s = realloc(*s, len); 
-
-    char temp[2];
-    temp[0] = c;
-    temp[1] = '\0';
-
-    strcat(*s,temp);
-       
-}
 char* trim(const char * string){
-    char * new_string = NULL;
+    char temp[strlen(string)];
+    int index = 0;
     for (size_t i = 0; i < strlen(string); i++)
     {
         if (string[i] == ' ') continue;
-        _strcat(&new_string, string[i]);
+        temp[index++] = string[i]; 
     }
-    return new_string;
+    return strndup(temp, index);
 }
 
 void info(command c){

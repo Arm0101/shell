@@ -80,8 +80,8 @@ pline parse_line(const char *line)
     temp.n_c = n;
     temp.comands = cmds;
 
-    free(_cmds);
-    free(_line);
+     free(_cmds);
+     free(_line);
     return temp;
    
 }
@@ -100,13 +100,11 @@ void remove_redir(char *c)
 }
 void redir_files(const char *args, char **inf, char **outf, bool *rep)
 {
-    char *_args = strdup(args);
-    if (_args != NULL && trim(_args) != NULL)
-        _args = trim(_args);
-
-    char *_if = NULL;
-    char *_of = NULL;
-
+    char * _args = trim(strdup(args));
+    char _if[strlen(_args)] ;
+    char _of[strlen(_args)] ;
+    int len1 = 0;
+    int len2 = 0;
     bool is_if = false;
     bool is_of = false;
     bool is_replace = false;
@@ -115,11 +113,13 @@ void redir_files(const char *args, char **inf, char **outf, bool *rep)
     {
         if (is_if && _args[i] != '>')
         {
-            _strcat(&_if, _args[i]);
+            _if[len1] = _args[i];
+            len1++; 
         }
         if (is_of && _args[i] != '<')
         {
-            _strcat(&_of, _args[i]);
+          _of[len2] = _args[i];
+          len2++;
         }
 
         if (_args[i] == '<')
@@ -143,20 +143,14 @@ void redir_files(const char *args, char **inf, char **outf, bool *rep)
             }
         }
     }
-    if (_if != NULL)
-    {
-         *inf = malloc(strlen(_if) * sizeof(char));
-         strcpy(*inf, _if);
+    if (len2 > 0) {
+        *outf = strndup(_of, len2);
     }
-
-    if (_of != NULL)
-    {
-         *outf = malloc(strlen(_of) * sizeof(char));
-         strcpy(*outf, _of);
+    if (len1 > 0) {
+        *inf = strndup(_if, len1);
     }
+    
     *rep = is_replace;
-     free(_if);
-     free(_of);
      free(_args);
 }
 
@@ -171,7 +165,6 @@ char **list(const char *args, size_t *size, const char* s)
         l_args = list_add(l_args, token, size);
         token = strtok(NULL, s);
     }
-
     free(token);
     free(_args);
     return l_args;

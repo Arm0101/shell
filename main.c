@@ -25,8 +25,8 @@ int main(){
         char * l = strchr(line,'\n');
         *l = '\0';
         pline pline = parse_line(line);
-        info(pline.comands[0]);
-        execute_cmd(pline.comands[0]);
+
+        execute_line(pline);
     }
 
 }

@@ -5,11 +5,18 @@
 #include <sys/types.h>
 
 char** list_add(char** list,const char* element, size_t* size){
-    char ** aux = realloc(list, ((*size)+1) * sizeof(char*));
+
+    
+    char ** aux = malloc(((*size)+1) * sizeof(char*));
     if (aux == NULL){
         fprintf(stderr, "Error al agregar el elemento a la lista");
         exit(EXIT_FAILURE);
     }
+    for (size_t i = 0; i < *size; i++)
+    {
+        aux[i] = strdup(list[i]);   
+    }
+    
     aux[(*size)++] = strdup(element); 
     return aux;
 }

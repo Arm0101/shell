@@ -4,5 +4,5 @@
 #define _EXECUTE_H
 
    void execute_cmd(command);
-
+   void execute_line(pline);
 #endif
