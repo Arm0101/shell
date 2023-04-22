@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <string.h>
 #include "execute.h"
 #include "list.h"
 #include "parser.h"
@@ -25,7 +26,7 @@ void execute_cmd(command c){
         if (c.outFile != NULL){
             int flags = O_WRONLY | O_TRUNC |O_CREAT;
             if (!c.replace_content) 
-                flags = O_WRONLY | O_APPEND;
+                flags = O_WRONLY | O_CREAT | O_APPEND;
 
            int fd1 = open(c.outFile, flags, ACCESS_FLAGS); 
            if (fd1 == -1){
@@ -60,7 +61,33 @@ void execute_cmd(command c){
 }
 
 void execute_line(pline l){
-    info(l.comands[0]);
+    //cd
+    if (!strcmp(l.comands[0].name,"cd")){
+        cd(l.comands[0].args[1]);
+        return;
+    }
+
+    //exit
+    if (!strcmp(l.comands[0].name,"exit"))
+        exit(EXIT_SUCCESS);
+
+    // info(l.comands[0]);
+
+
     execute_cmd(l.comands[0]);
+}
+
+
+void cd(const char* dir){
+    int e;
+    if (dir == NULL){
+        e = chdir(getenv("HOME"));  
+    }
+    else {
+        e = chdir(dir);
+    }
+
+    if (e == -1) perror("error");
+       return;
 }
 

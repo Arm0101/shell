@@ -5,4 +5,5 @@
 
    void execute_cmd(command);
    void execute_line(pline);
+   void cd(const char *);
 #endif
