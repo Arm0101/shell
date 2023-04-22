@@ -36,6 +36,7 @@ command parse_command(const char *line)
         }
      }
     args = list(_line, &size," ");
+    args = list_add(args, NULL, &size);
     setCommand(&temp,args[0],args,size,outf,inf,replace);
     free(_line);
     return temp;
