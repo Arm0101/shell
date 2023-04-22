@@ -9,11 +9,11 @@ void _strcat(char** s, const char c){
      else  len = strlen(*s) + 1;
 
     *s = realloc(*s, len); 
-    
+
     char temp[2];
     temp[0] = c;
     temp[1] = '\0';
-    
+
     strcat(*s,temp);
        
 }

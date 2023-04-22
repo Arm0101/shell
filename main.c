@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,11 +8,11 @@
 
 #include "list.h"
 #include "parser.h"
-
-
+#include "execute.h"
+void info(command);
 int main(){  
     char * line = NULL;
-    size_t len;
+    size_t len = 0;
     ssize_t nread;
 
     while (1)
@@ -23,15 +24,12 @@ int main(){
                                                                                                                                                                                                                                                                                                                                                                                                                         
         char * l = strchr(line,'\n');
         *l = '\0';
-
         command c = parse_command(line);
-        if (c.inFile != NULL)
-            printf("%s\n",c.inFile);
-        if (c.outFile != NULL)
-            printf("%s\n",c.outFile);
-        printf("%d\n", c.replace_content);
-        if (c.args != NULL)
-            print_list(c.args, c.n_args);
-
+        execute_cmd(c);
     }
+
 }
+
+
+
+
