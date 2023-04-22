@@ -8,8 +8,9 @@
 #include "parser.h"
 #include "utils.h"
 
-char **list_args(const char *, size_t *);
+char **list(const char *, size_t *, const char*);
 void setCommand(command *, const char*, char **, int , const char*, const char*, bool);
+command *setCMDS(char ** cmds, size_t n_cmds);
 void redir_files(const char *, char **, char **, bool *);
 void remove_redir(char *);
 
@@ -25,27 +26,17 @@ command parse_command(const char *line)
     char *inf = NULL, *outf = NULL;
     bool replace = false;
 
-    //  //obtener el nombre del comando
-    for (size_t i = 0; i < strlen(_line); i++)
-    {
-
-        if (_line[i] == ' ' || _line[i] == '\0')break;
-            _strcat(&name, _line[i]);
-    }
-
     // obtener la lista de argumentos;
     char *c = strchr(_line, ' ');
-    if (c != NULL)
-    {
+    if (c != NULL) {
 
-        redir_files(c, &inf, &outf, &replace);
-        if (inf != NULL || outf != NULL)
-        {
-            remove_redir(c);
+     redir_files(c, &inf, &outf, &replace);
+        if (inf != NULL || outf != NULL){
+          remove_redir(c);
         }
-    }
-    args = list_args(_line, &size);
-    setCommand(&temp,name,args,size,outf,inf,replace);
+     }
+    args = list(_line, &size," ");
+    setCommand(&temp,args[0],args,size,outf,inf,replace);
     free(_line);
     return temp;
 }
@@ -70,13 +61,29 @@ void setCommand(command * c, const char* name, char ** args, int n_args, const c
     c->replace_content = replace;
 }
 
-void parse_line(const char *line)
+pline parse_line(const char *line)
 {
+
+    pline temp = (pline) {0, NULL};
+    size_t n = 0;
     char *_line = strdup(line);
     char *l = strchr(_line, '#');
+    char** _cmds = NULL;
+    //quitar #...
     if (l != NULL)
         *l = '\0';
-    puts(_line);
+
+    // dividir por |
+    _cmds = list(_line,&n, "|");
+    
+    command * cmds = setCMDS(_cmds, n);
+    temp.n_c = n;
+    temp.comands = cmds;
+
+    free(_cmds);
+    free(_line);
+    return temp;
+   
 }
 
 void remove_redir(char *c)
@@ -153,19 +160,29 @@ void redir_files(const char *args, char **inf, char **outf, bool *rep)
      free(_args);
 }
 
-char **list_args(const char *args, size_t *size)
+char **list(const char *args, size_t *size, const char* s)
 {
     char *_args = strdup(args);
     char **l_args = NULL;
 
-    char *token = strtok(_args, " ");
+    char *token = strtok(_args, s);
     while (token != NULL)
     {
         l_args = list_add(l_args, token, size);
-        token = strtok(NULL, " ");
+        token = strtok(NULL, s);
     }
 
     free(token);
     free(_args);
     return l_args;
+}
+
+command *setCMDS(char ** cmds, size_t n_cmds){
+     command * temp = malloc(sizeof(command) * n_cmds);
+     for (size_t i = 0; i < n_cmds; i++)
+     {
+        temp[i] = parse_command(cmds[i]);
+     }
+     
+     return temp;
 }

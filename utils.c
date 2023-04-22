@@ -2,7 +2,11 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include "parser.h"
 #include "utils.h"
+#include "list.h"
+
 void _strcat(char** s, const char c){
     ssize_t len;
      if (*s == NULL) len = 1;
@@ -25,4 +29,26 @@ char* trim(const char * string){
         _strcat(&new_string, string[i]);
     }
     return new_string;
+}
+
+void info(command c){
+    printf("------------------info-------------------\n");
+      printf("name: %s \n", c.name);
+      if (c.inFile != NULL){
+            printf("IN: ");
+            printf("%s\n",c.inFile);
+      }
+      if (c.outFile != NULL){
+             printf("Out: ");
+             printf("%s\n",c.outFile);
+            printf("Replace: %d\n", c.replace_content);
+      }
+
+        
+       
+    if (c.args != NULL){
+        printf("args: \n");
+        print_list(c.args, c.n_args);
+    }
+    printf("------------------------------------------------------\n");
 }

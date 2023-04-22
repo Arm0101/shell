@@ -9,12 +9,12 @@
 #include "list.h"
 #include "parser.h"
 #include "execute.h"
-void info(command);
+#include "utils.h"
+
 int main(){  
     char * line = NULL;
     size_t len = 0;
     ssize_t nread;
-
     while (1)
     {
         printf("my-prompt$ ");
@@ -24,8 +24,9 @@ int main(){
                                                                                                                                                                                                                                                                                                                                                                                                                         
         char * l = strchr(line,'\n');
         *l = '\0';
-        command c = parse_command(line);
-        execute_cmd(c);
+        pline pline = parse_line(line);
+        info(pline.comands[0]);
+        execute_cmd(pline.comands[0]);
     }
 
 }

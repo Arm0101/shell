@@ -18,6 +18,6 @@
     } pline;
     
    command parse_command(const char *);
-   void parse_line(const char *);
+   pline parse_line(const char *);
 
 #endif

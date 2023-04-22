@@ -19,4 +19,4 @@ execute.o: execute.c execute.h
 	gcc -c execute.c
 
 clean:
-	rm -f shell *.o
+	rm -f shell *.o *.t

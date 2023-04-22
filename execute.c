@@ -9,12 +9,12 @@
 #include <fcntl.h>
 #include "execute.h"
 #include "list.h"
+#include "parser.h"
 
 #define ACCESS_FLAGS S_IRUSR| S_IWUSR | S_IXUSR
 
-void info(command);
+
 void execute_cmd(command c){
-    info(c);
     pid_t pid = fork();
     if (pid < 0){
         perror("Error al crear el proceso");
@@ -59,24 +59,4 @@ void execute_cmd(command c){
     }
 }
 
-void info(command c){
-    printf("------------------info-------------------\n");
-      printf("name: %s \n", c.name);
-      if (c.inFile != NULL){
-            printf("IN: \n");
-            printf("%s\n",c.inFile);
-      }
-      if (c.outFile != NULL){
-             printf("Out: \n");
-             printf("%s\n",c.outFile);
-      }
 
-    printf("Replace: %d\n", c.replace_content);
-        
-       
-    if (c.args != NULL){
-        printf("args: \n");
-        print_list(c.args, c.n_args);
-    }
-    printf("------------------------------------------------------\n");
-}
