@@ -13,8 +13,11 @@
 
     typedef struct
     {
-        int n_c;
-        command* comands;
+        int n_commands;
+        int *n_pipes;
+        command** comands;
+        char* chains;
+        bool background;
     } pline;
     
    command parse_command(const char *);

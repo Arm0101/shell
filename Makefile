@@ -1,8 +1,8 @@
 all: shell
 	./shell 
 
-shell: main.o list.o parser.o utils.o execute.o
-	gcc -o shell main.o list.o parser.o utils.o execute.o
+shell: main.o list.o parser.o utils.o execute.o jobs.o help.o
+	gcc -o shell main.o list.o parser.o utils.o execute.o jobs.o help.o
 main.o: main.c
 	gcc -c main.c
 
@@ -18,5 +18,10 @@ utils.o: utils.c utils.h
 execute.o: execute.c execute.h
 	gcc -c execute.c
 
+jobs.o: jobs.c jobs.h
+	gcc -c jobs.c
+
+help.o: help.c help.h
+	gcc -c help.c
 clean:
-	rm -f shell *.o *.t
+	rm -f shell *.o *.t;clear

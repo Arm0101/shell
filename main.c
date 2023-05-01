@@ -10,11 +10,17 @@
 #include "parser.h"
 #include "execute.h"
 #include "utils.h"
+#include "help.h"
 
-int main(){  
+
+int main(){
+    char PATH[1024];
+    getcwd(PATH,sizeof(PATH));
+    set_help_dir(PATH);
     char * line = NULL;
     size_t len = 0;
     ssize_t nread;
+    StackP stack = {NULL,NULL,0};
     while (1)
     {
         printf("my-prompt$ ");
@@ -25,12 +31,11 @@ int main(){
         char * l = strchr(line,'\n');
         *l = '\0';
         pline pline = parse_line(line);
-
-        execute_line(pline);
+        
+        execute_line(pline, &stack, line);
     }
 
 }
-
 
 
 

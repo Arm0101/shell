@@ -13,7 +13,7 @@ void setCommand(command *, const char*, char **, int , const char*, const char*,
 command *setCMDS(char ** cmds, size_t n_cmds);
 void redir_files(const char *, char **, char **, bool *);
 void remove_redir(char *);
-
+char * add_chain(char *, char, size_t*);
 command parse_command(const char *line)
 {
     char *_line = strdup(line);
@@ -65,24 +65,103 @@ void setCommand(command * c, const char* name, char ** args, int n_args, const c
 pline parse_line(const char *line)
 {
 
-    pline temp = (pline) {0, NULL};
-    size_t n = 0;
+    pline temp = (pline) {0,NULL, NULL,NULL};
+    
     char *_line = strdup(line);
     char *l = strchr(_line, '#');
-    char** _cmds = NULL;
+    bool background = false;
+    char* aux = trim(line);
     //quitar #...
     if (l != NULL)
         *l = '\0';
-
-    // dividir por |
-    _cmds = list(_line,&n, "|");
+    if (aux[strlen(aux) - 1] == '&'){
+        char *l2 = strrchr(_line,'&');
+        *l2 = '\0';
+        background = true;
+         
+    }
+    //dividir por encadenadores
+    size_t n_commands = 0;
+    char ** commands = NULL;
+    char* chains = NULL;
+    size_t n_chains = 0;
+    int len = strlen(_line);
+    int start = 0;
+    int count = 0;
     
-    command * cmds = setCMDS(_cmds, n);
-    temp.n_c = n;
-    temp.comands = cmds;
+    char ch;
+    for (size_t i = 0; i < len; i++)
+    {
+        ch = '-';
+        if (_line[i] == '|' && i+2 < len && _line[i+1] == '|'){
+             char* str = _strcpy(_line,start,count);
+             commands = list_add(commands,str,&n_commands);
+             free(str);
+             
+             ch = _line[i];
 
-     free(_cmds);
-     free(_line);
+             count = 0;
+             start = i+2;
+             i+=2;
+ 
+        }
+          if (_line[i] == '&' && i+2 < len && _line[i+1] == '&'){
+             char *str = _strcpy(_line,start,count);
+             commands = list_add(commands,str,&n_commands);
+             free(str);
+             ch = _line[i];
+             count = 0;
+             start = i+2;
+             i+=2;
+        }
+           if (_line[i] == ';' && i+1 < len){
+             char* str = _strcpy(_line,start,count);
+             commands = list_add(commands,str,&n_commands);
+             free(str);
+             ch = _line[i];   
+             count = 0;
+             start = i+1;
+             i+=1;
+        }
+        if (i == len - 1){
+             count++;
+             char * str = _strcpy(_line,start,count);
+             commands = list_add(commands,str,&n_commands);
+             free(str);
+
+        }
+        //agrego el encadenador
+        if (ch != '-'){
+            char* _chains = add_chain(chains,ch, &n_chains);
+            chains = malloc(sizeof(char) * (n_chains));
+            chains = strdup(_chains);
+            free(_chains);
+        }
+        count++;
+    }
+    if (chains != NULL){
+        temp.chains = strdup(chains);
+        free(chains);
+    }
+
+    temp.comands = malloc(sizeof(command*)*n_commands);
+    temp.n_pipes = malloc(sizeof(int*)*n_commands);
+    temp.n_commands = n_commands;
+    temp.background = background;
+    //guardar cada comando
+    size_t n = 0;
+    for (size_t i = 0; i < n_commands; i++)
+    {   
+        n = 0;
+        char** _cmds = list(commands[i],&n, "|");
+        command * cmds = setCMDS(_cmds, n);
+        temp.n_pipes[i] = n - 1;
+        temp.comands[i] = cmds;
+        free(_cmds);
+    }
+    free(commands);
+
+    free(_line);
     return temp;
    
 }
@@ -179,4 +258,16 @@ command *setCMDS(char ** cmds, size_t n_cmds){
      }
      
      return temp;
+}
+
+char * add_chain(char * chains, char chain, size_t* n){
+    char ch[*n+2];
+    for (size_t i = 0; i < *n; i++)
+    {
+        ch[i] = chains[i];
+    }
+    ch[*n] = chain;
+    ch[(*n)+1] = '\0';
+    (*n)++;
+    return strdup(ch);
 }

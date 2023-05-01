@@ -18,6 +18,24 @@ char* trim(const char * string){
     return strndup(temp, index);
 }
 
+char * _strcpy(char * string, int start, int count){
+    char * _string = strdup(string);
+    
+    int len = strlen(_string);
+    if (start + count > len || start < 0){
+        return (char*) NULL;
+    }
+    char* str = malloc(sizeof(char)*count + 1);
+
+    for (size_t i = 0; i < count; i++)
+    {
+        str[i] = _string[start+i];
+    }
+    str[count] = '\0';
+    free(_string);
+    return strdup(str);
+}
+
 void info(command c){
     printf("------------------info-------------------\n");
       printf("name: %s \n", c.name);

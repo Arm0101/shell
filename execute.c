@@ -12,13 +12,14 @@
 #include "list.h"
 #include "parser.h"
 #include "utils.h"
-
+#include "jobs.h"
+#include "help.h"
 #define ACCESS_FLAGS S_IRUSR| S_IWUSR | S_IXUSR
 #define READ_END 0
 #define WRITE_END 1
 
 void print_status(int);
-
+void exec(pline,StackP*);
 pid_t execute_cmd(command c, int in_fd, int out_fd, int ** fd, int n_cmd){
     pid_t pid = fork();
     if (pid < 0){
@@ -27,6 +28,24 @@ pid_t execute_cmd(command c, int in_fd, int out_fd, int ** fd, int n_cmd){
     }
     if (pid == 0){
 
+        if(!strcmp(c.name, "cd")){
+            exit(EXIT_SUCCESS);
+        }
+        if(!strcmp(c.name, "fg")){
+            exit(EXIT_SUCCESS);
+        }
+        if(!strcmp(c.name, "jobs")){
+            exit(EXIT_SUCCESS);
+        }
+        if(!strcmp(c.name, "true")){
+            exit(EXIT_SUCCESS);
+        }
+        if(!strcmp(c.name, "help")){
+            exit(EXIT_SUCCESS);
+        }
+         if(!strcmp(c.name, "false")){
+            exit(EXIT_FAILURE);
+        }
         if (c.outFile != NULL){
             int flags = O_WRONLY | O_TRUNC |O_CREAT;
             if (!c.replace_content)
@@ -66,7 +85,7 @@ pid_t execute_cmd(command c, int in_fd, int out_fd, int ** fd, int n_cmd){
             }
             
         }
-    
+        //ejecutar binario 
         execvp(c.name, c.args);
         perror("No se pudo ejecutar");
         exit(EXIT_FAILURE);
@@ -74,34 +93,78 @@ pid_t execute_cmd(command c, int in_fd, int out_fd, int ** fd, int n_cmd){
     return pid;
 }
 
-void execute_line(pline l){
-    //cd
-    if (l.n_c == 1){
-        if (!strcmp(l.comands[0].name,"cd")){
-            cd(l.comands[0].args[1]);
+void execute_line(pline l, StackP* st, char * line){
+    if (l.background){
+        pid_t pid = fork();
+        if (pid < 0){
+            perror("Error al crear el proceso");
             return;
         }
-        //exit
-        if (!strcmp(l.comands[0].name,"exit"))
+        if(pid == 0){
+            exec(l,st);
             exit(EXIT_SUCCESS);
-
-        // info(l.comands[0]);
-        pid_t pid = execute_cmd(l.comands[0],-1,-1, NULL, 0);
-        int status;
-        waitpid(pid,&status,0);
-        print_status(status);
+        }
+        printf("proceso: %d\n", pid);
+        stack_push(st,pid,line);
     }
     else{
-        execute_pipes(l);
+        exec(l,st);
     }
+}
+void exec(pline l,StackP* st){
+    int status = 0;
+    int chain = 0;
 
+    for (size_t i = 0; i < l.n_commands; i++)
+    {
+        if (l.n_pipes[i] == 0){
+            
+            if (!strcmp(l.comands[i][0].name,"cd")){
+                status = cd(l.comands[i][0].args[1]);
+
+            } else if (!strcmp(l.comands[i][0].name,"exit")){
+                exit(EXIT_SUCCESS);
+            } else if (!strcmp(l.comands[i][0].name,"fg")){
+                if (l.comands[i][0].args[1] == NULL){
+                    fg(st,-1);
+                }
+                else{
+                    pid_t _p = atoi(l.comands[i][0].args[1]);
+                    fg(st,_p);
+                }
+            }else if (!strcmp(l.comands[i][0].name,"jobs")){
+                    jobs(*st);
+            } else if (!strcmp(l.comands[i][0].name,"help")){
+                    help(l.comands[i][0].args[1]);
+            }
+            else{
+                pid_t pid = execute_cmd(l.comands[i][0],-1,-1, NULL, 0);
+                waitpid(pid,&status,0);
+            }
+        }
+        else{
+            status = execute_pipes(l.comands[i],l.n_pipes[i]);
+        }
+        if (l.chains != NULL && chain < strlen(l.chains)){
+            if (l.chains[chain] == '|'){
+                if (status == EXIT_SUCCESS){
+                    return;
+                }
+            }
+             if (l.chains[chain] == '&'){
+                if (status != EXIT_SUCCESS)
+                    return;
+            }
+            chain++;
+        }
+        
+    }
 }
 
-
- void execute_pipes(pline l){
-         int n_pipes = l.n_c -1;
+int execute_pipes(command * cmds, int n_pipes){
+         bool fail = false;
          int **fd = malloc(sizeof(int *) * n_pipes);
-         pid_t pids[l.n_c];
+         pid_t pids[n_pipes+1];
          int _pipe = 0;
          //crear los pipes
          for (int i = 0; i < n_pipes ; i++)
@@ -110,13 +173,13 @@ void execute_line(pline l){
             int p = pipe(fd[i]);
             if (p == -1){
                 perror("error pipe");
-                exit(EXIT_FAILURE);
+                return EXIT_FAILURE;
             }
          }
          
-         for (int i = 0; i < l.n_c; i++)
+         for (int i = 0; i <= n_pipes; i++)
          {
-             int in_fd;
+            int in_fd;
              int out_fd;
 
              if (i == 0){
@@ -124,7 +187,7 @@ void execute_line(pline l){
                  in_fd = -1;
                  out_fd = fd[_pipe][WRITE_END];
              
-             }else if (i == l.n_c - 1){
+             }else if (i == n_pipes){
                 //si es el ultimo cmd redirige la entrada al extremo de lecutura
                  in_fd = fd[_pipe][READ_END];
                  out_fd = -1;
@@ -136,23 +199,27 @@ void execute_line(pline l){
 
              }
 
-             pids[i] = execute_cmd(l.comands[i],in_fd,out_fd, fd, n_pipes);
+             pids[i] = execute_cmd(cmds[i],in_fd,out_fd, fd, n_pipes);
          }
          for (int i = 0; i < n_pipes; i++)
          {
              close(fd[i][READ_END]);
              close(fd[i][WRITE_END]);
          }
-         for (int i = 0; i < l.n_c; i++)
+         for (int i = 0; i <= n_pipes; i++)
          {
-             int status;
+             int status = 0;
              waitpid(pids[i],&status,0);
-             print_status(status);
+             if (WIFEXITED(status)){
+                 int stat = WEXITSTATUS(status);
+                 if (stat != 0)
+                    fail = true;
+            }
          }
+         return fail ? EXIT_FAILURE : EXIT_SUCCESS;
  }
 
-
-void cd(const char* dir){
+int cd(const char* dir){
     int e;
     if (dir == NULL){
         e = chdir(getenv("HOME"));
@@ -161,8 +228,11 @@ void cd(const char* dir){
         e = chdir(dir);
     }
 
-    if (e == -1) perror("error");
-       return;
+    if (e == -1) {
+        perror("error");
+       return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
 }
 
 void print_status( int status){
