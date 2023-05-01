@@ -1,0 +1,6 @@
+La shell puede ejecutar cualquie comando de linux :ls echo grep etc 
+se puede redireccionar la salida y entrada con < >> >
+tambien se puede cambiar los streams de salida del comando 
+
+Al introducir el caracter # el resto de la linea deja de ser parseada 
+El prompt siempre se imprime anres y despues de la ejecucion

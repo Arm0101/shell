@@ -1,0 +1,5 @@
+se crea una matriz con tantos pipes como haya ,se pasa un for por los comandos
+se verifica si es el primer comando ,se redirige la salida de ese comando al 
+extremo de escritura del pipe hasta que se llegue al ultimo comando que lo que 
+hace es redirigir la entrada al extremo de lectura del ultimo pipe que tienes y 
+la salida es la estandar 
